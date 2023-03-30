@@ -3,6 +3,21 @@ const router = express.Router();
 var cors = require("cors");
 const app = express();
 const http = require("http").createServer(app);
+const dotenv = require("dotenv");
+const mongoose = require("mongoose");
+const bodyParser = require("body-parser");
+
+app.use(bodyParser.json());
+
+dotenv.config();
+const mongoDb = process.env.MONGODB_URI;
+mongoose
+  .connect(mongoDb, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("Database connected successfully"))
+  .catch((err) => console.log(err));
+const db = mongoose.connection;
+db.on("error", console.error.bind(console, "mongo connection error"));
+
 const questions = require("./questions");
 
 const io = require("socket.io")(http, {
@@ -34,10 +49,34 @@ io.on("connection", function (socket) {
     console.log("user disconnected");
   });
 });
-router.get("/get-question", (req, res) => {
+
+router.post("/post-answers", (req, res, next) => {
+  console.log(req.body);
+  // if (err) {
+  //   res.sendStatus(403);
+  // } else{}
+  //     ).then((result) => {
+  //       console.log(result);
+  //     });
+  //     res.json(200);
+  //   });
+});
+
+router.get("/get-questions", (req, res) => {
   try {
-    let qNum = Math.floor(Math.random() * 80);
-    res.json(questions[qNum]);
+    let num1 = Math.floor(Math.random() * (70 - 1 + 1) + 1);
+    let num2 = Math.floor(Math.random() * (70 - 1 + 1) + 1);
+    let num3 = Math.floor(Math.random() * (70 - 1 + 1) + 1);
+
+    // check if the numbers are the same, and regenerate if necessary
+    while (num2 === num1) {
+      num2 = Math.floor(Math.random() * (70 - 1 + 1) + 1);
+    }
+
+    while (num3 === num1 || num3 === num2) {
+      num3 = Math.floor(Math.random() * (70 - 1 + 1) + 1);
+    }
+    res.json([questions[num1], questions[num2], questions[num3]]);
   } catch (err) {
     // code to handle the error
     console.error(err);
