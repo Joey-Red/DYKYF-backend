@@ -30,36 +30,90 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.static("public"));
 app.use(router); // Add this line
+const existingRooms = new Set();
+const playersInRoom = new Map();
+const playersWhoSubmittedAnswers = new Map();
 io.on("connection", function (socket) {
-  console.log("a user connected");
-
-  socket.on("create room", function (roomName) {
-    console.log(`user ${socket.id} created room ${roomName}`);
-    socket.join(roomName);
+  socket.on("create room", (roomName) => {
+    if (existingRooms.has(roomName)) {
+      socket.emit("roomNameTaken", { error: "Room name already taken" });
+    } else {
+      socket.join(roomName);
+      existingRooms.add(roomName);
+      if (!playersInRoom.has(roomName)) {
+        playersInRoom.set(roomName, new Set());
+      }
+      playersInRoom.get(roomName).add(socket.id);
+      socket.emit("roomCreated", { message: "success" });
+      const playersObject = {};
+      playersInRoom.forEach((playersSet, roomName) => {
+        playersObject[roomName] = Array.from(playersSet);
+      });
+      socket.emit("players", playersObject);
+      console.log(`user ${socket.id} created room ${roomName}`);
+    }
   });
+  // socket.on("getPlayersWhoSubmittedAnswers", (roomName) => {
+  //   const playersWhoSubmittedAnswersForRoom =
+  //     playersWhoSubmittedAnswers.get(roomName) || new Set();
+  //   socket.emit("playersWhoSubmittedAnswers", {
+  //     players: Array.from(playersWhoSubmittedAnswersForRoom),
+  //   });
+  // });
   socket.on("join room", function (roomName) {
-    console.log(`user ${socket.id} joined room ${roomName}`);
-    socket.join(roomName);
+    console.log(`user ${socket.id} is trying to join room ${roomName}`);
+    if (existingRooms.has(roomName)) {
+      console.log(`user ${socket.id} joined room ${roomName}`);
+      socket.join(roomName);
+      // add the user to the playersInRoom Map
+      if (!playersInRoom.has(roomName)) {
+        playersInRoom.set(roomName, new Set());
+      }
+      playersInRoom.get(roomName).add(socket.id);
+      socket.emit("joinedRoomSuccess", { message: `joined room ${roomName}` });
+      const playersObject = {};
+      playersInRoom.forEach((playersSet, roomName) => {
+        playersObject[roomName] = Array.from(playersSet);
+      });
+      socket.emit("players", playersObject);
+    } else {
+      socket.emit("joinedRoomFail", { message: "room doesnt exist" });
+    }
   });
   socket.on("chat message", (message, roomName) => {
     console.log(message, roomName);
     socket.to(roomName).emit("chat message", message);
   });
-  socket.on("disconnect", function () {
-    console.log("user disconnected");
-  });
-});
 
-router.post("/post-answers", (req, res, next) => {
-  console.log(req.body);
-  // if (err) {
-  //   res.sendStatus(403);
-  // } else{}
-  //     ).then((result) => {
-  //       console.log(result);
-  //     });
-  //     res.json(200);
-  //   });
+  socket.on("submitAnswers", (data) => {
+    const {
+      roomName,
+      questionOne,
+      answerOne,
+      questionTwo,
+      answerTwo,
+      questionThree,
+      answerThree,
+    } = data;
+    console.log(data);
+    // if (data.username !== "Anon"){
+    //   // EMIT A SOCKET FUNCTION TO CHANGE USERNAME
+    // }
+    if (!playersWhoSubmittedAnswers.has(roomName)) {
+      playersWhoSubmittedAnswers.set(roomName, new Set());
+    }
+    playersWhoSubmittedAnswers.get(roomName).add(socket.id);
+
+    const playersInRoomCount = playersInRoom.get(roomName).size;
+    const playersWhoSubmittedAnswersCount =
+      playersWhoSubmittedAnswers.get(roomName).size;
+    console.log(playersInRoomCount, playersWhoSubmittedAnswersCount);
+    if (playersWhoSubmittedAnswersCount === playersInRoomCount) {
+      io.in(roomName).emit("allPlayersReady", {
+        message: "all players are ready",
+      });
+    }
+  });
 });
 
 router.get("/get-questions", (req, res) => {
