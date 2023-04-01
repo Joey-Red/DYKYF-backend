@@ -33,7 +33,35 @@ app.use(router); // Add this line
 const existingRooms = new Set();
 const playersInRoom = new Map();
 const playersWhoSubmittedAnswers = new Map();
+const playerUsernames = new Map();
 io.on("connection", function (socket) {
+  socket.on("disconnect", function () {
+    console.log(`user ${socket.id} disconnected`);
+    playersInRoom.forEach((playersSet, roomName) => {
+      if (playersSet.has(socket.id)) {
+        playersSet.delete(socket.id);
+        // Remove the room from the existingRooms set if there are no more players in it
+        if (playersSet.size === 0) {
+          existingRooms.delete(roomName);
+        }
+        // Remove the player's ID from the playersWhoSubmittedAnswers map
+        if (playersWhoSubmittedAnswers.has(roomName)) {
+          playersWhoSubmittedAnswers.get(roomName).delete(socket.id);
+        }
+        // Remove the player's ID from the playerUsernames map
+        if (playerUsernames.has(socket.id)) {
+          playerUsernames.delete(socket.id);
+        }
+        // Emit an event to update the players object in the room
+        const playersObject = {};
+        playersInRoom.forEach((playersSet, roomName) => {
+          playersObject[roomName] = Array.from(playersSet);
+        });
+        io.in(roomName).emit("players", playersObject);
+      }
+    });
+  });
+
   socket.on("create room", (roomName) => {
     if (existingRooms.has(roomName)) {
       socket.emit("roomNameTaken", { error: "Room name already taken" });
@@ -53,13 +81,7 @@ io.on("connection", function (socket) {
       console.log(`user ${socket.id} created room ${roomName}`);
     }
   });
-  // socket.on("getPlayersWhoSubmittedAnswers", (roomName) => {
-  //   const playersWhoSubmittedAnswersForRoom =
-  //     playersWhoSubmittedAnswers.get(roomName) || new Set();
-  //   socket.emit("playersWhoSubmittedAnswers", {
-  //     players: Array.from(playersWhoSubmittedAnswersForRoom),
-  //   });
-  // });
+
   socket.on("join room", function (roomName) {
     console.log(`user ${socket.id} is trying to join room ${roomName}`);
     if (existingRooms.has(roomName)) {
@@ -76,15 +98,32 @@ io.on("connection", function (socket) {
         playersObject[roomName] = Array.from(playersSet);
       });
       socket.emit("players", playersObject);
+      // io.to(roomName).emit("room members update", getRoomMembers(roomName));
     } else {
       socket.emit("joinedRoomFail", { message: "room doesnt exist" });
     }
   });
-  socket.on("chat message", (message, roomName) => {
-    console.log(message, roomName);
-    socket.to(roomName).emit("chat message", message);
-  });
 
+  io.on("connection", (socket) => {
+    // socket.on("chat message", (data, roomName) => {
+    //   // console.log(data, roomName);
+    //   const { id, message, username } = data;
+    //   io.to(roomName).emit("chat message", { id, message, username });
+    // });
+  });
+  socket.on("all players ready", (data) => {
+    // console.log(data);
+    const roomSize = playersWhoSubmittedAnswers.get(data.roomName).size;
+    io.to(data.roomName).emit("start game", roomSize);
+  });
+  socket.on("player moved", (data) => {
+    // console.log(data);
+    // io.to(data.roomName).emit(data);
+
+    io.in(data.roomName).emit("update player", {
+      data: data,
+    });
+  });
   socket.on("submitAnswers", (data) => {
     const {
       roomName,
@@ -94,10 +133,12 @@ io.on("connection", function (socket) {
       answerTwo,
       questionThree,
       answerThree,
+      username,
     } = data;
-    console.log(data);
-    // if (data.username !== "Anon"){
+    // console.log(data);
+    // if (username !== "Anon") {
     //   // EMIT A SOCKET FUNCTION TO CHANGE USERNAME
+    //   playerUsernames.set(socket.id, username);
     // }
     if (!playersWhoSubmittedAnswers.has(roomName)) {
       playersWhoSubmittedAnswers.set(roomName, new Set());
@@ -107,10 +148,20 @@ io.on("connection", function (socket) {
     const playersInRoomCount = playersInRoom.get(roomName).size;
     const playersWhoSubmittedAnswersCount =
       playersWhoSubmittedAnswers.get(roomName).size;
-    console.log(playersInRoomCount, playersWhoSubmittedAnswersCount);
-    if (playersWhoSubmittedAnswersCount === playersInRoomCount) {
+    if (
+      playersWhoSubmittedAnswersCount === playersInRoomCount &&
+      playersInRoomCount >= 2
+    ) {
+      // Get the username for each player who submitted answers
+      const playerUsernamesArray = Array.from(
+        playersWhoSubmittedAnswers.get(roomName)
+      ).map((playerId) => {
+        return playerUsernames.get(playerId);
+      });
+      // Emit an event with the usernames for all players who submitted answers
       io.in(roomName).emit("allPlayersReady", {
         message: "all players are ready",
+        playerUsernames: playerUsernamesArray,
       });
     }
   });
