@@ -117,7 +117,6 @@ io.on("connection", function (socket) {
     io.to(data.roomName).emit("start game", roomSize);
   });
   socket.on("player moved", (data) => {
-    // console.log(data);
     // io.to(data.roomName).emit(data);
 
     io.in(data.roomName).emit("update player", {
