@@ -34,6 +34,8 @@ const existingRooms = new Set();
 const playersInRoom = new Map();
 const playersWhoSubmittedAnswers = new Map();
 const playerUsernames = new Map();
+const answersByRoomName = new Map();
+
 io.on("connection", function (socket) {
   socket.on("disconnect", function () {
     console.log(`user ${socket.id} disconnected`);
@@ -123,6 +125,43 @@ io.on("connection", function (socket) {
       data: data,
     });
   });
+  // socket.on("submitAnswers", (data) => {
+  //   const {
+  //     roomName,
+  //     questionOne,
+  //     answerOne,
+  //     questionTwo,
+  //     answerTwo,
+  //     questionThree,
+  //     answerThree,
+  //     username,
+  //   } = data;
+
+  //   if (!playersWhoSubmittedAnswers.has(roomName)) {
+  //     playersWhoSubmittedAnswers.set(roomName, new Set());
+  //   }
+  //   playersWhoSubmittedAnswers.get(roomName).add(socket.id);
+
+  //   const playersInRoomCount = playersInRoom.get(roomName).size;
+  //   const playersWhoSubmittedAnswersCount =
+  //     playersWhoSubmittedAnswers.get(roomName).size;
+  //   if (
+  //     playersWhoSubmittedAnswersCount === playersInRoomCount &&
+  //     playersInRoomCount >= 2
+  //   ) {
+  //     // Get the username for each player who submitted answers
+  //     const playerUsernamesArray = Array.from(
+  //       playersWhoSubmittedAnswers.get(roomName)
+  //     ).map((playerId) => {
+  //       return playerUsernames.get(playerId);
+  //     });
+  //     // Emit an event with the usernames for all players who submitted answers
+  //     io.in(roomName).emit("allPlayersReady", {
+  //       message: "all players are ready",
+  //       playerUsernames: playerUsernamesArray,
+  //     });
+  //   }
+  // });
   socket.on("submitAnswers", (data) => {
     const {
       roomName,
@@ -134,11 +173,24 @@ io.on("connection", function (socket) {
       answerThree,
       username,
     } = data;
-    // console.log(data);
-    // if (username !== "Anon") {
-    //   // EMIT A SOCKET FUNCTION TO CHANGE USERNAME
-    //   playerUsernames.set(socket.id, username);
-    // }
+
+    // Create a new object with the questions and answers
+    const userAnswers = {
+      questionOne,
+      answerOne,
+      questionTwo,
+      answerTwo,
+      questionThree,
+      answerThree,
+      username,
+    };
+
+    // Add the userAnswers object to the answersByRoomName Map
+    if (!answersByRoomName.has(roomName)) {
+      answersByRoomName.set(roomName, []);
+    }
+    answersByRoomName.get(roomName).push(userAnswers);
+
     if (!playersWhoSubmittedAnswers.has(roomName)) {
       playersWhoSubmittedAnswers.set(roomName, new Set());
     }
@@ -151,16 +203,25 @@ io.on("connection", function (socket) {
       playersWhoSubmittedAnswersCount === playersInRoomCount &&
       playersInRoomCount >= 2
     ) {
-      // Get the username for each player who submitted answers
-      const playerUsernamesArray = Array.from(
-        playersWhoSubmittedAnswers.get(roomName)
-      ).map((playerId) => {
-        return playerUsernames.get(playerId);
-      });
-      // Emit an event with the usernames for all players who submitted answers
+      // Get the username and answers for each player who submitted answers
+      const playersAnswersArray = answersByRoomName
+        .get(roomName)
+        .map((userAnswers) => {
+          return {
+            username: userAnswers.username,
+            answers: {
+              questionOne: userAnswers.questionOne,
+              answerOne: userAnswers.answerOne,
+              questionTwo: userAnswers.questionTwo,
+              answerTwo: userAnswers.answerTwo,
+              questionThree: userAnswers.questionThree,
+              answerThree: userAnswers.answerThree,
+            },
+          };
+        });
+      // Emit an event with the usernames and answers for all players who submitted answers
       io.in(roomName).emit("allPlayersReady", {
-        message: "all players are ready",
-        playerUsernames: playerUsernamesArray,
+        playerAnswersArray: playersAnswersArray,
       });
     }
   });
