@@ -45,6 +45,8 @@ io.on("connection", function (socket) {
         // Remove the room from the existingRooms set if there are no more players in it
         if (playersSet.size === 0) {
           existingRooms.delete(roomName);
+          playersWhoSubmittedAnswers.delete(roomName);
+          answersByRoomName.delete(roomName);
         }
         // Remove the player's ID from the playersWhoSubmittedAnswers map
         if (playersWhoSubmittedAnswers.has(roomName)) {
@@ -125,43 +127,12 @@ io.on("connection", function (socket) {
       data: data,
     });
   });
-  // socket.on("submitAnswers", (data) => {
-  //   const {
-  //     roomName,
-  //     questionOne,
-  //     answerOne,
-  //     questionTwo,
-  //     answerTwo,
-  //     questionThree,
-  //     answerThree,
-  //     username,
-  //   } = data;
-
-  //   if (!playersWhoSubmittedAnswers.has(roomName)) {
-  //     playersWhoSubmittedAnswers.set(roomName, new Set());
-  //   }
-  //   playersWhoSubmittedAnswers.get(roomName).add(socket.id);
-
-  //   const playersInRoomCount = playersInRoom.get(roomName).size;
-  //   const playersWhoSubmittedAnswersCount =
-  //     playersWhoSubmittedAnswers.get(roomName).size;
-  //   if (
-  //     playersWhoSubmittedAnswersCount === playersInRoomCount &&
-  //     playersInRoomCount >= 2
-  //   ) {
-  //     // Get the username for each player who submitted answers
-  //     const playerUsernamesArray = Array.from(
-  //       playersWhoSubmittedAnswers.get(roomName)
-  //     ).map((playerId) => {
-  //       return playerUsernames.get(playerId);
-  //     });
-  //     // Emit an event with the usernames for all players who submitted answers
-  //     io.in(roomName).emit("allPlayersReady", {
-  //       message: "all players are ready",
-  //       playerUsernames: playerUsernamesArray,
-  //     });
-  //   }
-  // });
+  socket.on("game over", (data) => {
+    io.in(data.roomName).emit("game over", (data) => {});
+  });
+  socket.on("go next question", (data) => {
+    io.in(data.roomName).emit("next question", (data) => {});
+  });
   socket.on("submitAnswers", (data) => {
     const {
       roomName,
