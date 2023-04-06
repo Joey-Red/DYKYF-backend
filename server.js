@@ -22,7 +22,7 @@ const questions = require("./questions");
 
 const io = require("socket.io")(http, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
