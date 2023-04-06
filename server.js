@@ -22,7 +22,12 @@ const questions = require("./questions");
 
 const io = require("socket.io")(http, {
   cors: {
-    origin: "https://gregarious-ganache-b28fe5.netlify.app/",
+    origin: [
+      "https://gregarious-ganache-b28fe5.netlify.app/",
+      "https://main--gregarious-ganache-b28fe5.netlify.app/",
+      "https://do-you-know-your-friends.netlify.app",
+      "https://main--do-you-know-your-friends.netlify.app",
+    ],
     methods: ["GET", "POST"],
   },
 });
