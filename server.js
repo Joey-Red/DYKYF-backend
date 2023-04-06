@@ -27,6 +27,7 @@ const io = require("socket.io")(http, {
       "https://main--gregarious-ganache-b28fe5.netlify.app/",
       "https://do-you-know-your-friends.netlify.app",
       "https://main--do-you-know-your-friends.netlify.app",
+      "https://642f406851ee2f19ed259f2f--do-you-know-your-friends.netlify.app",
     ],
     methods: ["GET", "POST"],
   },
