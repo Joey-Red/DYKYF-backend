@@ -118,7 +118,24 @@ io.on("connection", function (socket) {
   socket.on("all players ready", (data) => {
     // console.log(data);
     const roomSize = playersWhoSubmittedAnswers.get(data.roomName).size;
-    io.to(data.roomName).emit("start game", roomSize);
+    let corrAnswerColor;
+    let num = Math.floor(Math.random() * 4) + 1;
+    if (num === 1) {
+      corrAnswerColor = "red";
+    }
+    if (num === 2) {
+      corrAnswerColor = "green";
+    }
+    if (num === 3) {
+      corrAnswerColor = "blue";
+    }
+    if (num === 4) {
+      corrAnswerColor = "orange";
+    }
+    io.to(data.roomName).emit("start game", {
+      roomSize: roomSize,
+      corrAnswerColor: corrAnswerColor,
+    });
   });
   socket.on("player moved", (data) => {
     // io.to(data.roomName).emit(data);
@@ -131,7 +148,22 @@ io.on("connection", function (socket) {
     io.in(data.roomName).emit("game over", (data) => {});
   });
   socket.on("go next question", (data) => {
-    io.in(data.roomName).emit("next question", (data) => {});
+    let num = Math.floor(Math.random() * 4) + 1;
+    if (num === 1) {
+      corrAnswerColor = "red";
+    }
+    if (num === 2) {
+      corrAnswerColor = "green";
+    }
+    if (num === 3) {
+      corrAnswerColor = "blue";
+    }
+    if (num === 4) {
+      corrAnswerColor = "orange";
+    }
+    io.in(data.roomName).emit("next question", {
+      corrAnswerColor: corrAnswerColor,
+    });
   });
   socket.on("submitAnswers", (data) => {
     const {
@@ -200,17 +232,17 @@ io.on("connection", function (socket) {
 
 router.get("/get-questions", (req, res) => {
   try {
-    let num1 = Math.floor(Math.random() * (70 - 1 + 1) + 1);
-    let num2 = Math.floor(Math.random() * (70 - 1 + 1) + 1);
-    let num3 = Math.floor(Math.random() * (70 - 1 + 1) + 1);
+    let num1 = Math.floor(Math.random() * (80 - 1 + 1) + 1);
+    let num2 = Math.floor(Math.random() * (80 - 1 + 1) + 1);
+    let num3 = Math.floor(Math.random() * (80 - 1 + 1) + 1);
 
     // check if the numbers are the same, and regenerate if necessary
     while (num2 === num1) {
-      num2 = Math.floor(Math.random() * (70 - 1 + 1) + 1);
+      num2 = Math.floor(Math.random() * (80 - 1 + 1) + 1);
     }
 
     while (num3 === num1 || num3 === num2) {
-      num3 = Math.floor(Math.random() * (70 - 1 + 1) + 1);
+      num3 = Math.floor(Math.random() * (80 - 1 + 1) + 1);
     }
     res.json([questions[num1], questions[num2], questions[num3]]);
   } catch (err) {
