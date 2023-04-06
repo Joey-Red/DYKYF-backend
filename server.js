@@ -28,7 +28,15 @@ const io = require("socket.io")(http, {
       "https://do-you-know-your-friends.netlify.app",
       "https://main--do-you-know-your-friends.netlify.app",
       "https://642f406851ee2f19ed259f2f--do-you-know-your-friends.netlify.app",
+      "https://do-you-know-your-friends.netlify.app",
+      "http://gregarious-ganache-b28fe5.netlify.app/",
+      "http://main--gregarious-ganache-b28fe5.netlify.app/",
+      "http://do-you-know-your-friends.netlify.app",
+      "http://main--do-you-know-your-friends.netlify.app",
+      "http://642f406851ee2f19ed259f2f--do-you-know-your-friends.netlify.app",
+      "http://do-you-know-your-friends.netlify.app",
     ],
+
     methods: ["GET", "POST"],
   },
 });
