@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 var cors = require("cors");
 const app = express();
-const http = require("http").createServer(app);
+const https = require("https").createServer(app);
 // const dotenv = require("dotenv");
 // const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
@@ -20,7 +20,7 @@ app.use(bodyParser.json());
 
 const questions = require("./questions");
 
-const io = require("socket.io")(http, {
+const io = require("socket.io")(https, {
   cors: {
     origin: [
       "https://gregarious-ganache-b28fe5.netlify.app/",
@@ -265,7 +265,8 @@ router.get("/get-questions", (req, res) => {
     res.status(500).json({ error: "Something went wrong" });
   }
 });
+router.get("/", (req, res) => res.status(200).json("OK"));
 
-http.listen(port, function () {
+https.listen(port, function () {
   console.log(`listening on *:${port}`);
 });
