@@ -36,8 +36,8 @@ const io = require("socket.io")(http, {
       "http://642f406851ee2f19ed259f2f--do-you-know-your-friends.netlify.app",
       "http://do-you-know-your-friends.netlify.app",
     ],
-
     methods: ["GET", "POST"],
+    credentials: false,
   },
 });
 const port = process.env.PORT || 3001;
