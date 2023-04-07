@@ -19,7 +19,7 @@ app.use(bodyParser.json());
 // db.on("error", console.error.bind(console, "mongo connection error"));
 
 const questions = require("./questions");
-
+// SOCKETIO-LB-699984410.us-east-1.elb.amazonaws.com
 const io = require("socket.io")(http, {
   cors: {
     origin: [
@@ -266,7 +266,7 @@ router.get("/get-questions", (req, res) => {
   }
 });
 router.get("/", (req, res) => res.status(200).json("OK"));
-
-http.listen(port, function () {
+const hostname = "SOCKETIO-LB-699984410.us-east-1.elb.amazonaws.com";
+http.listen(port, hostname, () => {
   console.log(`listening on *:${port}`);
 });
