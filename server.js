@@ -3,7 +3,7 @@ const router = express.Router();
 var cors = require("cors");
 const app = express();
 const http = require("http").createServer(app);
-// const dotenv = require("dotenv");
+const dotenv = require("dotenv");
 // const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 
