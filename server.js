@@ -4,22 +4,13 @@ var cors = require("cors");
 const app = express();
 const http = require("http").createServer(app);
 const dotenv = require("dotenv");
-// const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 
 app.use(bodyParser.json());
 
-// dotenv.config();
-// const mongoDb = process.env.MONGODB_URI;
-// mongoose
-//   .connect(mongoDb, { useNewUrlParser: true, useUnifiedTopology: true })
-//   .then(() => console.log("Database connected successfully"))
-//   .catch((err) => console.log(err));
-// const db = mongoose.connection;
-// db.on("error", console.error.bind(console, "mongo connection error"));
-
+dotenv.config();
 const questions = require("./questions");
-// SOCKETIO-LB-699984410.us-east-1.elb.amazonaws.com
+
 const io = require("socket.io")(http, {
   cors: {
     origin: [
@@ -28,16 +19,8 @@ const io = require("socket.io")(http, {
       "https://do-you-know-your-friends.netlify.app",
       "https://main--do-you-know-your-friends.netlify.app",
       "https://642f406851ee2f19ed259f2f--do-you-know-your-friends.netlify.app",
-      "https://do-you-know-your-friends.netlify.app",
-      "http://gregarious-ganache-b28fe5.netlify.app/",
-      "http://main--gregarious-ganache-b28fe5.netlify.app/",
-      "http://do-you-know-your-friends.netlify.app",
-      "http://main--do-you-know-your-friends.netlify.app",
-      "http://642f406851ee2f19ed259f2f--do-you-know-your-friends.netlify.app",
-      "http://do-you-know-your-friends.netlify.app",
     ],
     methods: ["GET", "POST"],
-    credentials: false,
   },
 });
 const port = process.env.PORT || 3001;
@@ -266,7 +249,6 @@ router.get("/get-questions", (req, res) => {
   }
 });
 router.get("/", (req, res) => res.status(200).json("OK"));
-const hostname = "SOCKETIO-LB-699984410.us-east-1.elb.amazonaws.com";
-http.listen(port, hostname, () => {
+http.listen(port, function () {
   console.log(`listening on *:${port}`);
 });
