@@ -3,20 +3,20 @@ const router = express.Router();
 var cors = require("cors");
 const app = express();
 const http = require("http").createServer(app);
-const dotenv = require("dotenv");
-const mongoose = require("mongoose");
+// const dotenv = require("dotenv");
+// const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 
 app.use(bodyParser.json());
 
-dotenv.config();
-const mongoDb = process.env.MONGODB_URI;
-mongoose
-  .connect(mongoDb, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log("Database connected successfully"))
-  .catch((err) => console.log(err));
-const db = mongoose.connection;
-db.on("error", console.error.bind(console, "mongo connection error"));
+// dotenv.config();
+// const mongoDb = process.env.MONGODB_URI;
+// mongoose
+//   .connect(mongoDb, { useNewUrlParser: true, useUnifiedTopology: true })
+//   .then(() => console.log("Database connected successfully"))
+//   .catch((err) => console.log(err));
+// const db = mongoose.connection;
+// db.on("error", console.error.bind(console, "mongo connection error"));
 
 const questions = require("./questions");
 
